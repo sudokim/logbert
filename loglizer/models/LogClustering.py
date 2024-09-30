@@ -12,11 +12,10 @@ Reference:
 """
 
 import numpy as np
-import pprint
-from scipy.special import expit
 from numpy import linalg as LA
 from scipy.cluster.hierarchy import linkage, fcluster
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import pdist
+
 from ..utils import metrics
 
 

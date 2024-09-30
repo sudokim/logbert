@@ -1,5 +1,5 @@
-from collections import Counter
 import pickle
+from collections import Counter
 
 
 class Vocab(object):

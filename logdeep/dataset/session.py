@@ -1,5 +1,4 @@
 #see https://pinjiahe.github.io/papers/ISSRE16.pdf
-import os
 import pandas as pd
 
 def session_window():

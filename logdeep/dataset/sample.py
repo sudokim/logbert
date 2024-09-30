@@ -1,9 +1,10 @@
 import json
-from collections import Counter
-import pickle
 import numpy as np
 import pandas as pd
+import pickle
+from collections import Counter
 from tqdm import tqdm
+
 
 def read_json(filename):
     with open(filename, 'r') as load_f:

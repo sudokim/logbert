@@ -1,8 +1,7 @@
-from torch.utils.data import Dataset
-import tqdm
-import torch
 import random
-import numpy as np
+import torch
+from torch.utils.data import Dataset
+
 
 class BERTDataset(Dataset):
     def __init__(self, corpus_path, vocab, seq_len, corpus_lines=None, encoding="utf-8", on_memory=True, predict_mode=False):

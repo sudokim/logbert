@@ -12,7 +12,9 @@ Reference:
 """
 
 import numpy as np
+
 from ..utils import metrics
+
 
 class PCA(object):
 

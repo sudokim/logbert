@@ -1,14 +1,14 @@
+import numpy as np
+import pandas as pd
+import time
 import torch
 import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
-from ..model import BERTLog, BERT
 from .optim_schedule import ScheduledOptim
-import time
-import tqdm
-import numpy as np
-import pandas as pd
+from ..model import BERTLog, BERT
+
 
 class BERTTrainer:
     """

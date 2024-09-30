@@ -7,12 +7,13 @@ Authors:
 
 """
 
-import pandas as pd
-import os
 import numpy as np
+import os
+import pandas as pd
 import re
-from sklearn.utils import shuffle
 from collections import OrderedDict
+from sklearn.utils import shuffle
+
 
 def _split_data(x_data, y_data=None, train_ratio=0, split_type='uniform'):
     if split_type == 'uniform' and y_data is not None:

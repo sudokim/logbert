@@ -4,11 +4,10 @@ Author      : LogPAI team
 License     : MIT
 """
 
-import re
-import os
-import numpy as np
-import pandas as pd
 import hashlib
+import os
+import pandas as pd
+import re
 from datetime import datetime
 
 

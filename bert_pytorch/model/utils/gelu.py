@@ -1,6 +1,6 @@
-import torch.nn as nn
-import torch
 import math
+import torch
+import torch.nn as nn
 
 
 class GELU(nn.Module):

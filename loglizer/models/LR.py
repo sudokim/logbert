@@ -12,9 +12,10 @@ Reference:
 
 """
 
-import numpy as np
 from sklearn.linear_model import LogisticRegression
+
 from ..utils import metrics
+
 
 class LR(object):
 

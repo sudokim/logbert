@@ -1,8 +1,9 @@
-from torch.utils.data import Dataset
-import torch
-import random
 import numpy as np
+import random
+import torch
 from collections import defaultdict
+from torch.utils.data import Dataset
+
 
 class LogDataset(Dataset):
     def __init__(self, log_corpus, time_corpus, vocab, seq_len, corpus_lines=None, encoding="utf-8", on_memory=True, predict_mode=False, mask_ratio=0.15):
@@ -127,7 +128,9 @@ class LogDataset(Dataset):
 
         output["bert_input"] = torch.tensor(output["bert_input"], dtype=torch.long)
         output["bert_label"] = torch.tensor(output["bert_label"], dtype=torch.long)
-        output["time_input"] = torch.tensor(output["time_input"], dtype=torch.float)
+        # output["time_input"] = torch.tensor(output["time_input"], dtype=torch.float)
+        output["time_input"] = np.array(output["time_input"])
+        output["time_input"] = torch.from_numpy(output["time_input"])
         output["time_label"] = torch.tensor(output["time_label"], dtype=torch.float)
 
         return output

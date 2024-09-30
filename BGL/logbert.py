@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("../")
 # sys.path.append("../../")
 #
@@ -8,28 +9,33 @@ sys.path.append("../")
 
 
 import argparse
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from bert_pytorch.dataset import WordVocab
 from bert_pytorch import Predictor, Trainer
 from logdeep.tools.utils import *
 
 options = dict()
-options['device'] = 'cuda' if torch.cuda.is_available() else 'cpu'
+options["seed"] = int(os.environ.get("SEED", 1234))
+options["device"] = "cuda" if torch.cuda.is_available() else "cpu"
 
 options["output_dir"] = "../output/bgl/"
+options["dataset_dir"] = "../dataset/bgl/"
 options["model_dir"] = options["output_dir"] + "bert/"
-options["model_path"] = options["model_dir"] + "best_bert.pth"
-options["train_vocab"] = options['output_dir'] + 'train'
-options["vocab_path"] = options["output_dir"] + "vocab.pkl"
+options["model_path"] = options["model_dir"] + f"best_bert_{options['seed']}.pt"
+options["model_path_best_center"] = options["model_dir"] + f"best_bert_center_{options['seed']}.pt"
+options["model_path_total_dist"] = options["model_dir"] + f"best_bert_total_dist_{options['seed']}.pt"
+options["train_vocab"] = options["dataset_dir"] + "train"
+options["vocab_path"] = options["dataset_dir"] + "vocab_logbert.pkl"
 
 options["window_size"] = 128
 options["adaptive_window"] = True
 options["seq_len"] = 512
-options["max_len"] = 512 # for position embedding
+options["max_len"] = 512  # for position embedding
 options["min_len"] = 10
 
 options["mask_ratio"] = 0.5
+
+options["vocab_size"] = 144
 
 options["train_ratio"] = 1
 options["valid_ratio"] = 0.1
@@ -42,11 +48,11 @@ options["is_time"] = False
 options["hypersphere_loss"] = True
 options["hypersphere_loss_test"] = False
 
-options["scale"] = None # MinMaxScaler()
+options["scale"] = None  # MinMaxScaler()
 options["scale_path"] = options["model_dir"] + "scale.pkl"
 
 # model
-options["hidden"] = 256 # embedding size
+options["hidden"] = 256  # embedding size
 options["layers"] = 4
 options["attn_heads"] = 4
 
@@ -61,7 +67,7 @@ options["lr"] = 1e-3
 options["adam_beta1"] = 0.9
 options["adam_beta2"] = 0.999
 options["adam_weight_decay"] = 0.00
-options["with_cuda"]= True
+options["with_cuda"] = True
 options["cuda_devices"] = None
 options["log_freq"] = None
 
@@ -70,7 +76,7 @@ options["num_candidates"] = 15
 options["gaussian_mean"] = 0
 options["gaussian_std"] = 1
 
-seed_everything(seed=1234)
+seed_everything(seed=options["seed"])
 print("device", options["device"])
 print("features logkey:{} time: {}".format(options["is_logkey"], options["is_time"]))
 print("mask ratio", options["mask_ratio"])
@@ -79,16 +85,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
-    train_parser = subparsers.add_parser('train')
-    train_parser.set_defaults(mode='train')
+    train_parser = subparsers.add_parser("train")
+    train_parser.set_defaults(mode="train")
 
-    predict_parser = subparsers.add_parser('predict')
-    predict_parser.set_defaults(mode='predict')
+    predict_parser = subparsers.add_parser("predict")
+    predict_parser.set_defaults(mode="predict")
     predict_parser.add_argument("-m", "--mean", type=float, default=0)
     predict_parser.add_argument("-s", "--std", type=float, default=1)
 
-    vocab_parser = subparsers.add_parser('vocab')
-    vocab_parser.set_defaults(mode='vocab')
+    vocab_parser = subparsers.add_parser("vocab")
+    vocab_parser.set_defaults(mode="vocab")
     vocab_parser.add_argument("-s", "--vocab_size", type=int, default=None)
     vocab_parser.add_argument("-e", "--encoding", type=str, default="utf-8")
     vocab_parser.add_argument("-m", "--min_freq", type=int, default=1)
@@ -98,20 +104,15 @@ if __name__ == "__main__":
     # Trainer(options).train()
     # Predictor(options).predict()
 
-    if args.mode == 'train':
+    if args.mode == "train":
         Trainer(options).train()
 
-    elif args.mode == 'predict':
+    elif args.mode == "predict":
         Predictor(options).predict()
 
-    elif args.mode == 'vocab':
-        with open(options["train_vocab"], 'r') as f:
+    elif args.mode == "vocab":
+        with open(options["train_vocab"], "r") as f:
             logs = f.readlines()
         vocab = WordVocab(logs)
         print("vocab_size", len(vocab))
         vocab.save_vocab(options["vocab_path"])
-
-
-
-
-

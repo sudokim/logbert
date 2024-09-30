@@ -1,6 +1,7 @@
 import torch.nn as nn
-import torch
+
 from .bert import BERT
+
 
 class BERTLog(nn.Module):
     """

@@ -3,8 +3,8 @@ The implementation of the one class SVM model for anomaly detection.
 
 """
 
-import numpy as np
 from sklearn import svm
+
 from ..utils import metrics
 
 

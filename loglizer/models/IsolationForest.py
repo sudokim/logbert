@@ -12,7 +12,9 @@ Reference:
 
 import numpy as np
 from sklearn.ensemble import IsolationForest as iForest
+
 from ..utils import metrics
+
 
 class IsolationForest(iForest):
 

@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import numpy as np
-import pandas as pd
 import torch
-from torch.utils.data import Dataset, Sampler
+from torch.utils.data import Dataset
 
 
 class log_dataset(Dataset):

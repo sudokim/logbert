@@ -1,7 +1,8 @@
 import pickle
+import sys
 import tqdm
 from collections import Counter
-import sys
+
 sys.path.append("../")
 
 class TorchVocab(object):

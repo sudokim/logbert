@@ -4,15 +4,11 @@ Author      : LogPAI team
 License     : MIT
 """
 
-import sys
+import hashlib
 # import re
 import regex as re
-import os
-import numpy as np
-import pandas as pd
-import hashlib
-from datetime import datetime
 import string
+from datetime import datetime
 from tqdm import tqdm
 
 

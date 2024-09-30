@@ -11,9 +11,10 @@ Reference:
 
 """
 
-import numpy as np
 from sklearn import tree
+
 from ..utils import metrics
+
 
 class DecisionTree(object):
 

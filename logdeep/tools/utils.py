@@ -1,14 +1,11 @@
-import os
-import random
-
-import numpy as np
-import torch
-import torch.nn.functional as F
-from torch import nn
-
 import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
+import os
 import pandas as pd
+import random
+import seaborn as sns
+import torch
+
 
 def save_parameters(options, filename):
     with open(filename, "w+") as f:

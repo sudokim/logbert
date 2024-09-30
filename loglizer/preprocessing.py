@@ -7,14 +7,12 @@ Authors:
 """
 
 
-import pandas as pd
-import os
 import numpy as np
-import re
+import pandas as pd
 from collections import Counter
 from scipy.special import expit
-from itertools import compress
 from torch.utils.data import DataLoader, Dataset
+
 
 class Iterator(Dataset):
     def __init__(self, data_dict, batch_size=32, shuffle=False, num_workers=1):

@@ -1,6 +1,6 @@
-from tqdm import tqdm
 import numpy as np
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 
 def generate_pairs(line, window_size):
@@ -9,7 +9,7 @@ def generate_pairs(line, window_size):
 
     seqs = []
     for i in range(0, len(line), window_size):
-        seq = line[i:i + window_size]
+        seq = line[i : i + window_size]
         seqs.append(seq)
     seqs += []
     seq_pairs = []
@@ -36,7 +36,7 @@ def fixed_window(line, window_size, adaptive_window, seq_len=None, min_len=0):
 
     # if time duration exists in data
     if line.shape[1] == 2:
-        tim = line[:,1].astype(float)
+        tim = line[:, 1].astype(float)
         line = line[:, 0]
 
         # the first time duration of a session should be 0, so max is window_size(mins) * 60
@@ -49,16 +49,25 @@ def fixed_window(line, window_size, adaptive_window, seq_len=None, min_len=0):
     logkey_seqs = []
     time_seq = []
     for i in range(0, len(line), window_size):
-        logkey_seqs.append(line[i:i + window_size])
-        time_seq.append(tim[i:i + window_size])
+        logkey_seqs.append(line[i : i + window_size])
+        time_seq.append(tim[i : i + window_size])
 
     return logkey_seqs, time_seq
 
 
-def generate_train_valid(data_path, window_size=20, adaptive_window=True,
-                         sample_ratio=1, valid_size=0.1, output_path=None,
-                         scale=None, scale_path=None, seq_len=None, min_len=0):
-    with open(data_path, 'r') as f:
+def generate_train_valid(
+    data_path,
+    window_size=20,
+    adaptive_window=True,
+    sample_ratio=1,
+    valid_size=0.1,
+    output_path=None,
+    scale=None,
+    scale_path=None,
+    seq_len=None,
+    min_len=0,
+):
+    with open(data_path, "r") as f:
         data_iter = f.readlines()
 
     num_session = int(len(data_iter) * sample_ratio)
@@ -73,7 +82,7 @@ def generate_train_valid(data_path, window_size=20, adaptive_window=True,
     print("before filtering short session")
     print("train size ", int(num_session - test_size))
     print("valid size ", int(test_size))
-    print("="*40)
+    print("=" * 40)
 
     logkey_seq_pairs = []
     time_seq_pairs = []
@@ -90,10 +99,9 @@ def generate_train_valid(data_path, window_size=20, adaptive_window=True,
     logkey_seq_pairs = np.array(logkey_seq_pairs)
     time_seq_pairs = np.array(time_seq_pairs)
 
-    logkey_trainset, logkey_validset, time_trainset, time_validset = train_test_split(logkey_seq_pairs,
-                                                                                      time_seq_pairs,
-                                                                                      test_size=test_size,
-                                                                                      random_state=1234)
+    logkey_trainset, logkey_validset, time_trainset, time_validset = train_test_split(
+        logkey_seq_pairs, time_seq_pairs, test_size=test_size, random_state=1234
+    )
 
     # sort seq_pairs by seq len
     train_len = list(map(len, logkey_trainset))
@@ -108,10 +116,9 @@ def generate_train_valid(data_path, window_size=20, adaptive_window=True,
     time_trainset = time_trainset[train_sort_index]
     time_validset = time_validset[valid_sort_index]
 
-    print("="*40)
+    print("=" * 40)
     print("Num of train seqs", len(logkey_trainset))
     print("Num of valid seqs", len(logkey_validset))
-    print("="*40)
+    print("=" * 40)
 
     return logkey_trainset, logkey_validset, time_trainset, time_validset
-

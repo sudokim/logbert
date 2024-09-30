@@ -1,10 +1,12 @@
 import sys
+
 sys.path.append("../")
 sys.path.append("../../")
 
 import os
+
 dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, '../deeplog')
+filename = os.path.join(dirname, "../deeplog")
 
 
 import argparse
@@ -15,17 +17,24 @@ from bert_pytorch import Predictor, Trainer
 from bert_pytorch.dataset.utils import seed_everything
 
 options = dict()
-options['device'] = 'cuda' if torch.cuda.is_available() else 'cpu'
+options["seed"] = int(os.environ.get("SEED", 1234))
+options["device"] = "cuda" if torch.cuda.is_available() else "cpu"
 options["output_dir"] = "../output/hdfs/"
-options["model_dir"] = options["output_dir"] + "bert/"
-options["model_path"] = options["model_dir"] + "best_bert.pth"
-options["train_vocab"] = options["output_dir"] + "train"
-options["vocab_path"] = options["output_dir"] + "vocab.pkl"  # pickle file
+options["dataset_dir"] = "../dataset/hdfs/"
+options["model_dir"] = options["output_dir"] + f"bert/{options['seed']}/"
+
+os.makedirs(options["model_dir"], exist_ok=True)
+
+options["model_path"] = options["model_dir"] + f"best_bert_{options['seed']}.pt"
+options["model_path_best_center"] = options["model_dir"] + f"best_bert_center_{options['seed']}.pt"
+options["model_path_total_dist"] = options["model_dir"] + f"best_bert_total_dist_{options['seed']}.pt"
+options["train_vocab"] = options["dataset_dir"] + "train"
+options["vocab_path"] = options["dataset_dir"] + "vocab_logbert.pkl"  # pickle file
 
 options["window_size"] = 128
 options["adaptive_window"] = True
 options["seq_len"] = 512
-options["max_len"] = 512 # for position embedding
+options["max_len"] = 512  # for position embedding
 options["min_len"] = 10
 options["mask_ratio"] = 0.65
 # sample ratio
@@ -40,11 +49,11 @@ options["is_time"] = False
 options["hypersphere_loss"] = True
 options["hypersphere_loss_test"] = False
 
-options["scale"] = None # MinMaxScaler()
+options["scale"] = None  # MinMaxScaler()
 options["scale_path"] = options["model_dir"] + "scale.pkl"
 
 # model
-options["hidden"] = 256 # embedding size
+options["hidden"] = 256  # embedding size
 options["layers"] = 4
 options["attn_heads"] = 4
 
@@ -59,7 +68,7 @@ options["lr"] = 1e-3
 options["adam_beta1"] = 0.9
 options["adam_beta2"] = 0.999
 options["adam_weight_decay"] = 0.00
-options["with_cuda"]= True
+options["with_cuda"] = True
 options["cuda_devices"] = None
 options["log_freq"] = None
 
@@ -68,10 +77,10 @@ options["num_candidates"] = 6
 options["gaussian_mean"] = 0
 options["gaussian_std"] = 1
 
-seed_everything(seed=1234)
+seed_everything(seed=options["seed"])
 
-if not os.path.exists(options['model_dir']):
-    os.makedirs(options['model_dir'], exist_ok=True)
+if not os.path.exists(options["model_dir"]):
+    os.makedirs(options["model_dir"], exist_ok=True)
 
 print("device", options["device"])
 print("features logkey:{} time: {}\n".format(options["is_logkey"], options["is_time"]))
@@ -81,16 +90,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
-    train_parser = subparsers.add_parser('train')
-    train_parser.set_defaults(mode='train')
+    train_parser = subparsers.add_parser("train")
+    train_parser.set_defaults(mode="train")
 
-    predict_parser = subparsers.add_parser('predict')
-    predict_parser.set_defaults(mode='predict')
+    predict_parser = subparsers.add_parser("predict")
+    predict_parser.set_defaults(mode="predict")
     predict_parser.add_argument("-m", "--mean", type=float, default=0)
     predict_parser.add_argument("-s", "--std", type=float, default=1)
 
-    vocab_parser = subparsers.add_parser('vocab')
-    vocab_parser.set_defaults(mode='vocab')
+    vocab_parser = subparsers.add_parser("vocab")
+    vocab_parser.set_defaults(mode="vocab")
     vocab_parser.add_argument("-s", "--vocab_size", type=int, default=None)
     vocab_parser.add_argument("-e", "--encoding", type=str, default="utf-8")
     vocab_parser.add_argument("-m", "--min_freq", type=int, default=1)
@@ -98,21 +107,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print("arguments", args)
 
-    if args.mode == 'train':
+    if args.mode == "train":
         Trainer(options).train()
 
-    elif args.mode == 'predict':
+    elif args.mode == "predict":
         Predictor(options).predict()
 
-    elif args.mode == 'vocab':
+    elif args.mode == "vocab":
         with open(options["train_vocab"], "r", encoding=args.encoding) as f:
             texts = f.readlines()
         vocab = WordVocab(texts, max_size=args.vocab_size, min_freq=args.min_freq)
         print("VOCAB SIZE:", len(vocab))
         print("save vocab in", options["vocab_path"])
         vocab.save_vocab(options["vocab_path"])
-
-
-
-
-

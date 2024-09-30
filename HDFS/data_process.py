@@ -7,7 +7,6 @@ import json
 import pandas as pd
 from collections import defaultdict
 from tqdm import tqdm
-import numpy as np
 from logparser import Spell, Drain
 
 # get [log key, delta time] as input for deeplog

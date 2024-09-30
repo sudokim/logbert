@@ -1,9 +1,10 @@
 import torch.nn as nn
-import torch
-from .token import TokenEmbedding
+
 from .position import PositionalEmbedding
 from .segment import SegmentEmbedding
 from .time_embed import TimeEmbedding
+from .token import TokenEmbedding
+
 
 class BERTEmbedding(nn.Module):
     """

@@ -13,7 +13,9 @@ Reference:
 
 import numpy as np
 from itertools import combinations
+
 from ..utils import metrics
+
 
 class InvariantsMiner(object):
 

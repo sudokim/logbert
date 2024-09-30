@@ -6,7 +6,6 @@ import gc
 import pandas as pd
 import numpy as np
 from logparser import Spell, Drain
-import argparse
 from tqdm import tqdm
 from logdeep.dataset.session import sliding_window
 

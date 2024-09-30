@@ -1,10 +1,10 @@
-import torch
-import math
-import torch.optim as optim
 import pandas as pd
-from torch import nn
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
+import torch
+import torch.optim as optim
 from collections import defaultdict
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
+from torch import nn
+
 
 class DeepLog(nn.Module):
     def __init__(self, num_labels, hidden_size=100, num_directions=2, topk=9, device="cpu"):
