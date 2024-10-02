@@ -13,7 +13,7 @@ from logdeep.dataset.vocab import Vocab
 
 import torch
 
-dataset_dir = "../dataset/bgl/"
+dataset_dir = "../dataset/hdfs/"
 output_dir = "../output/hdfs/"
 
 # Config Parameters
