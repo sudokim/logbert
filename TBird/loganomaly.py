@@ -66,7 +66,7 @@ options["lr_decay_ratio"] = 0.1
 
 options["resume_path"] = None
 options["model_name"] = "deeplog"
-options["save_dir"] = options["output_dir"] + f"deeplog/{options['seed']}/"
+options["save_dir"] = options["output_dir"] + f"loganomaly/{options['seed']}/"
 
 os.makedirs(options["save_dir"], exist_ok=True)
 

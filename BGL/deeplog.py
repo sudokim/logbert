@@ -50,7 +50,7 @@ options["input_size"] = 1
 options["hidden_size"] = 64
 options["num_layers"] = 2
 options["embedding_dim"] = 50
-options["vocab_size"] = 141
+options["vocab_size"] = 177
 options["num_classes"] = options["vocab_size"]
 # Train
 options["batch_size"] = 128

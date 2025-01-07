@@ -56,12 +56,15 @@ class Predicter:
     def detect_logkey_anomaly(self, output, label):
         num_anomaly = 0
         predicts = []
+        raw_predicts = []
         for i in range(len(label)):
-            predicted = torch.argsort(output[i])[-self.num_candidates :].tolist()
+            raw_predicted = torch.argsort(output[i], descending=True).tolist()
+            predicted = raw_predicted[: self.num_candidates]
             if label[i] not in predicted:
                 num_anomaly += 1
             predicts.append(predicted)
-        return num_anomaly, predicts
+            raw_predicts.append(raw_predicted)
+        return num_anomaly, predicts, raw_predicts
 
     def compute_anomaly(self, results, threshold=0):
         total_errors = 0
@@ -146,7 +149,6 @@ class Predicter:
                     features = []
                     for value in log.values():
                         features.append(value.clone().detach().to(self.device))
-                    assert len(features) == 1
 
                     all_indexes.extend([idx] * len(label))
                     all_labels.extend(label.tolist())
@@ -156,9 +158,9 @@ class Predicter:
 
                     num_predicted_logkey += len(label)
 
-                    num_anomaly, predicts = self.detect_logkey_anomaly(output, label)
+                    num_anomaly, predicts, raw_predicts = self.detect_logkey_anomaly(output, label)
                     num_logkey_anomaly += num_anomaly
-                    all_output.extend(predicts)
+                    all_output.extend(raw_predicts)
 
                 # result for line at idx
                 result = {"logkey_anomaly": num_logkey_anomaly, "predicted_logkey": num_predicted_logkey}

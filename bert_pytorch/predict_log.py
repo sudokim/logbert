@@ -1,6 +1,8 @@
 import numpy as np
 import pickle
 import time
+
+import pandas as pd
 import torch
 from bert_pytorch.dataset import LogDataset
 from bert_pytorch.dataset import WordVocab
@@ -169,7 +171,12 @@ class Predictor:
             seq_dataset, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=seq_dataset.collate_fn
         )
 
-        for idx, data in enumerate(data_loader):
+        all_indexes = []
+        all_labels = []
+        all_output = []
+        all_inputs = []
+
+        for idx, data in enumerate(tqdm(data_loader)):
             data = {key: value.to(self.device) for key, value in data.items()}
 
             result = model(data["bert_input"], data["time_input"])
@@ -179,61 +186,13 @@ class Predictor:
             # bert_label, time_label: batch_size x session_size
             # in session, some logkeys are masked
 
-            mask_lm_output, mask_tm_output = result["logkey_output"], result["time_output"]
-            output_cls += result["cls_output"].tolist()
+            pad_mask = (data["bert_input"] == 4)
+            nonzero_idx = torch.nonzero(pad_mask, as_tuple=True)
 
-            # dist = torch.sum((result["cls_output"] - self.hyper_center) ** 2, dim=1)
-            # when visualization no mask
-            # continue
-
-            # loop though each session in batch
-            for i in range(len(data["bert_label"])):
-                seq_results = {
-                    "num_error": 0,
-                    "undetected_tokens": 0,
-                    "masked_tokens": 0,
-                    "total_logkey": torch.sum(data["bert_input"][i] > 0).item(),
-                    "deepSVDD_label": 0,
-                }
-
-                mask_index = data["bert_label"][i] > 0
-                num_masked = torch.sum(mask_index).tolist()
-                seq_results["masked_tokens"] = num_masked
-
-                if self.is_logkey:
-                    num_undetected, output_seq = self.detect_logkey_anomaly(
-                        mask_lm_output[i][mask_index], data["bert_label"][i][mask_index]
-                    )
-                    seq_results["undetected_tokens"] = num_undetected
-
-                    output_results.append(output_seq)
-
-                if self.hypersphere_loss_test:
-                    # detect by deepSVDD distance
-                    assert result["cls_output"][i].size() == self.center.size()
-                    # dist = torch.sum((result["cls_fnn_output"][i] - self.center) ** 2)
-                    dist = torch.sqrt(torch.sum((result["cls_output"][i] - self.center) ** 2))
-                    total_dist.append(dist.item())
-
-                    # user defined threshold for deepSVDD_label
-                    seq_results["deepSVDD_label"] = int(dist.item() > self.radius)
-                    #
-                    # if dist > 0.25:
-                    #     pass
-
-                if idx < 10 or idx % 1000 == 0:
-                    print(
-                        "{}, #time anomaly: {} # of undetected_tokens: {}, # of masked_tokens: {} , "
-                        "# of total logkey {}, deepSVDD_label: {} \n".format(
-                            file_name,
-                            seq_results["num_error"],
-                            seq_results["undetected_tokens"],
-                            seq_results["masked_tokens"],
-                            seq_results["total_logkey"],
-                            seq_results["deepSVDD_label"],
-                        )
-                    )
-                total_results.append(seq_results)
+            all_indexes.extend((nonzero_idx[0] + idx * self.batch_size).tolist())
+            all_labels.extend(data["bert_label"][nonzero_idx].tolist())
+            all_inputs.extend(data["bert_input"].tolist())
+            all_output.extend(result["logkey_output"][nonzero_idx].argsort(dim=-1, descending=True).tolist())
 
         # for time
         # return total_results, total_errors
@@ -242,8 +201,9 @@ class Predictor:
         # return total_results, output_results
 
         # for hypersphere distance
-        return total_results, output_cls
+        return all_indexes, all_labels, all_inputs, all_output
 
+    @torch.no_grad()
     def predict(self):
         model = torch.load(self.model_path)
         model.to(self.device)
@@ -269,30 +229,49 @@ class Predictor:
             # self.center = self.center.view(1,-1)
 
         print("test normal predicting")
-        test_normal_results, test_normal_errors = self.helper(
+        all_indexes_normal, all_labels_normal, all_inputs_normal, all_output_normal = self.helper(
             model, self.dataset_dir, "test_normal", vocab, scale, error_dict
         )
 
         print("test abnormal predicting")
-        test_abnormal_results, test_abnormal_errors = self.helper(
+        all_indexes_abnormal, all_labels_abnormal, all_inputs_abnormal, all_output_abnormal = self.helper(
             model, self.dataset_dir, "test_abnormal", vocab, scale, error_dict
         )
 
+        normal_df = pd.DataFrame({"indexes": all_indexes_normal, "labels": all_labels_normal, "output": all_output_normal})
+        abnormal_df = pd.DataFrame({"indexes": all_indexes_abnormal, "labels": all_labels_abnormal, "output": all_output_abnormal})
+
+        top_ks = []
+        for top_k in range(1, 15):
+            normal_df["correctness"] = np.vectorize(lambda x, y: x in y[:top_k])(normal_df["labels"], normal_df["output"])
+            abnormal_df["correctness"] = np.vectorize(lambda x, y: x in y[:top_k])(abnormal_df["labels"], abnormal_df["output"])
+
+            normal_correctness = normal_df.groupby("indexes")["correctness"].all()
+            abnormal_correctness = abnormal_df.groupby("indexes")["correctness"].all()
+
+            TN = normal_correctness.sum()
+            FN = abnormal_correctness.sum()
+            FP = len(normal_correctness) - TN
+            TP = len(abnormal_correctness) - FN
+
+            precision = TP / (TP + FP)
+            recall = TP / (TP + FN)
+            f1 = 2 * precision * recall / (precision + recall)
+            specificity = TN / (TN + FP)
+            npv = TN / (TN + FN)
+
+            top_ks.append({"top_k": top_k, "TP": TP, "FP": FP, "TN": TN, "FN": FN, "precision": precision, "recall": recall, "f1": f1, "specificity": specificity, "npv": npv})
+
+        top_ks_df = pd.DataFrame(top_ks)
+        print(top_ks_df.sort_values("f1", ascending=False).head(5))
+
         print("Saving test normal results")
-        with open(self.model_dir + "test_normal_results", "wb") as f:
-            pickle.dump(test_normal_results, f)
+        with open(self.model_dir + "test_normal_results.pkl", "wb") as f:
+            pickle.dump({"indexes": all_indexes_normal, "labels": all_labels_normal, "inputs": all_inputs_normal, "output": all_output_normal}, f)
 
         print("Saving test abnormal results")
-        with open(self.model_dir + "test_abnormal_results", "wb") as f:
-            pickle.dump(test_abnormal_results, f)
-
-        print("Saving test normal errors")
-        with open(self.model_dir + "test_normal_errors.pkl", "wb") as f:
-            pickle.dump(test_normal_errors, f)
-
-        print("Saving test abnormal results")
-        with open(self.model_dir + "test_abnormal_errors.pkl", "wb") as f:
-            pickle.dump(test_abnormal_errors, f)
+        with open(self.model_dir + "test_abnormal_results.pkl", "wb") as f:
+            pickle.dump({"indexes": all_indexes_abnormal, "labels": all_labels_abnormal, "inputs": all_inputs_abnormal, "output": all_output_abnormal}, f)
 
         params = {
             "is_logkey": self.is_logkey,

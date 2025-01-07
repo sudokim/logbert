@@ -51,7 +51,7 @@ options["feature_num"] = sum(
 options["input_size"] = 1
 options["hidden_size"] = 64
 options["num_layers"] = 2
-options["num_classes"] = 141
+options["num_classes"] = 177
 options["embedding_dim"] = 50
 options["vocab_size"] = options["num_classes"]
 # Train
@@ -67,7 +67,7 @@ options["lr_decay_ratio"] = 0.1
 
 options["resume_path"] = None
 options["model_name"] = "deeplog"
-options["save_dir"] = options["output_dir"] + "deeplog/"
+options["save_dir"] = options["output_dir"] + "loganomaly/"
 
 # Predict
 options["model_path"] = options["save_dir"] + f"best_{options['model_name']}_{options['seed']}.pth"

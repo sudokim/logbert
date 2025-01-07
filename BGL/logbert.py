@@ -35,7 +35,7 @@ options["min_len"] = 10
 
 options["mask_ratio"] = 0.5
 
-options["vocab_size"] = 144
+options["vocab_size"] = 177
 
 options["train_ratio"] = 1
 options["valid_ratio"] = 0.1
